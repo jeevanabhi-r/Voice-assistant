@@ -7,9 +7,8 @@ import tempfile
 import numpy as np
 import os
 from groq import Groq
-
-MURF_API_KEY = "ap2_c06b75d6-225e-4b5c-b599-1510cbf0b004"
-GROQ_API_KEY = "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"
+MURF_API_KEY = os.getenv("MURF_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 client = Groq(api_key=GROQ_API_KEY)
 
