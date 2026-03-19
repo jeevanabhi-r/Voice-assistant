@@ -1,7 +1,0 @@
-gradio
-groq
-SpeechRecognition
-requests
-pydub
-scipy
-pyttsx3
