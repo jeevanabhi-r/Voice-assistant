@@ -19,10 +19,11 @@ def speech_to_text(audio_file):
         recognizer = sr.Recognizer()
         with sr.AudioFile(audio_file) as source:
             audio = recognizer.record(source)
-        return recognizer.recognize_google(audio, language="en-IN")
+            return recognizer.recognize_google(audio, language="en-IN")
     except Exception as e:
         return f"ERROR: {str(e)}"
-        def save_audio_from_numpy(audio_data, sample_rate, filename):
+
+def save_audio_from_numpy(audio_data, sample_rate, filename):
     with wave.open(filename, 'wb') as wav_file:
         wav_file.setnchannels(1)
         wav_file.setsampwidth(2)
@@ -65,7 +66,7 @@ def offline_tts(text):
 
 def get_llm_response(transcribed_text, personality):
     persona_prompt = personalities.get(personality, "")
-    llm_response_text = f"Hello! You said: '{transcribed_text}'. Your persona is '{personality}'."
+    llm_response_text = f"Hello! You said: '{transcribed_text}'. Your persona is '{personality}'."  
     return llm_response_text
 
 def voice_study_assistant(audio_path, text_input, personality):
@@ -111,7 +112,6 @@ body {
     100% { transform: scale(1); opacity: 0.7; }
 }
 """
-
 with gr.Blocks(css=css) as demo:
     gr.Markdown("## 🎙️ AI Voice Assistant")
     gr.Markdown("Tap and speak your question")
@@ -136,5 +136,4 @@ with gr.Blocks(css=css) as demo:
         inputs=[audio_input, text_input, persona],
         outputs=[output_text, output_audio]
     )
-
 demo.launch()
