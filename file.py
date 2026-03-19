@@ -2,6 +2,9 @@ import gradio as gr
 import requests
 import speech_recognition as sr
 import pyttsx3
+import wave
+import tempfile
+import numpy as np
 import os
 
 MURF_API_KEY = "ap2_c06b75d6-225e-4b5c-b599-1510cbf0b004"
@@ -19,6 +22,13 @@ def speech_to_text(audio_file):
         return recognizer.recognize_google(audio, language="en-IN")
     except Exception as e:
         return f"ERROR: {str(e)}"
+        def save_audio_from_numpy(audio_data, sample_rate, filename):
+    with wave.open(filename, 'wb') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        audio_int16 = (audio_data * 32767).astype(np.int16)
+        wav_file.writeframes(audio_int16.tobytes())
 
 def murf_tts(text):
     try:
@@ -106,7 +116,7 @@ with gr.Blocks(css=css) as demo:
     gr.Markdown("## 🎙️ AI Voice Assistant")
     gr.Markdown("Tap and speak your question")
     circle = gr.HTML("<div class='circle'></div>")
-    audio_input = gr.Audio(type="numpy", label="🎤 Speak")
+    audio_input = gr.Audio(sources=["microphone"], type="filepath", label="🎤 Speak")
     text_input = gr.Textbox(placeholder="Or type...", label="📝 Text Input", visible=True)
     persona = gr.Radio(
         list(personalities.keys()),
@@ -114,7 +124,7 @@ with gr.Blocks(css=css) as demo:
         label="🎭 Mode"
     )
     output_text = gr.Markdown()
-    output_audio = gr.Audio()
+    output_audio = gr.Audio(autoplay=True)
     speak_btn = gr.Button("🎤 Speak Now", variant="primary")
     
     def run_assistant(audio, text, persona_name):
