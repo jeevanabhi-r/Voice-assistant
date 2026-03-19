@@ -6,13 +6,12 @@ import wave
 import tempfile
 import numpy as np
 import os
-import google.generativeai as genai
+from groq import Groq
 
 MURF_API_KEY = "ap2_c06b75d6-225e-4b5c-b599-1510cbf0b004"
-GEMINI_API_KEY = "AIzaSyD9jfLsZcG6Y9Jr7dyRkrJowow046Myr74"  
+GROQ_API_KEY = "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"
 
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = Groq(api_key=GROQ_API_KEY)
 
 personalities = {
     "Friendly": "You are a friendly, enthusiastic, and highly encouraging Study Assistant. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always end with a simple follow-up question to check understanding.",
@@ -24,7 +23,7 @@ def speech_to_text(audio_file):
         recognizer = sr.Recognizer()
         with sr.AudioFile(audio_file) as source:
             audio = recognizer.record(source)
-            return recognizer.recognize_google(audio, language="en-IN")
+        return recognizer.recognize_google(audio, language="en-IN")
     except Exception as e:
         return f"ERROR: {str(e)}"
 
@@ -73,10 +72,13 @@ def get_llm_response(transcribed_text, personality):
     try:
         persona_prompt = personalities.get(personality, "")
         prompt = f"{persona_prompt}\n\nQuestion from student: {transcribed_text}\n\nAnswer in a clear, concise way that can be easily converted to speech (avoid tables, special characters, and formatting). Keep the answer under 300 words."
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        print("Gemini Error:", e)
+        print("Groq Error:", e)
         return f"Sorry, I could not process your question right now. Please try again."
 
 def voice_study_assistant(audio_path, text_input, personality):
@@ -122,6 +124,7 @@ body {
     100% { transform: scale(1); opacity: 0.7; }
 }
 """
+
 with gr.Blocks(css=css) as demo:
     gr.Markdown("## 🎙️ AI Voice Study Assistant")
     gr.Markdown("Tap and speak your question")
@@ -146,4 +149,5 @@ with gr.Blocks(css=css) as demo:
         inputs=[audio_input, text_input, persona],
         outputs=[output_text, output_audio]
     )
+
 demo.launch(share=True, debug=True)
