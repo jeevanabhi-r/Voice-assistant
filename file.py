@@ -6,12 +6,17 @@ import wave
 import tempfile
 import numpy as np
 import os
+import google.generativeai as genai
 
 MURF_API_KEY = "ap2_c06b75d6-225e-4b5c-b599-1510cbf0b004"
+GEMINI_API_KEY = "AIzaSyDKdHj9xJXqYkXvZqF5J8Z4vLmP9nR7wXc"  
+
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 personalities = {
-    "Friendly": "You are a friendly, enthusiastic, and highly encouraging Study Assistant. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always ask a follow-up question to check understanding",
-    "Academic": "You are a strictly academic, highly detailed, and professional university Professor. Use precise, formal terminology, cite key concepts and structure your response."
+    "Friendly": "You are a friendly, enthusiastic, and highly encouraging Study Assistant. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always end with a simple follow-up question to check understanding.",
+    "Academic": "You are a strictly academic, highly detailed, and professional university Professor. Use precise, formal terminology, cite key concepts, provide structured explanations with clear headings, and include relevant formulas or definitions where applicable."
 }
 
 def speech_to_text(audio_file):
@@ -65,9 +70,14 @@ def offline_tts(text):
     return file_path
 
 def get_llm_response(transcribed_text, personality):
-    persona_prompt = personalities.get(personality, "")
-    llm_response_text = f"Hello! You said: '{transcribed_text}'. Your persona is '{personality}'."  
-    return llm_response_text
+    try:
+        persona_prompt = personalities.get(personality, "")
+        prompt = f"{persona_prompt}\n\nQuestion from student: {transcribed_text}\n\nAnswer in a clear, concise way that can be easily converted to speech (avoid tables, special characters, and formatting). Keep the answer under 300 words."
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        print("Gemini Error:", e)
+        return f"Sorry, I could not process your question right now. Please try again."
 
 def voice_study_assistant(audio_path, text_input, personality):
     transcribed_text = ""
@@ -113,11 +123,11 @@ body {
 }
 """
 with gr.Blocks(css=css) as demo:
-    gr.Markdown("## 🎙️ AI Voice Assistant")
+    gr.Markdown("## 🎙️ AI Voice Study Assistant")
     gr.Markdown("Tap and speak your question")
     circle = gr.HTML("<div class='circle'></div>")
     audio_input = gr.Audio(sources=["microphone"], type="filepath", label="🎤 Speak")
-    text_input = gr.Textbox(placeholder="Or type...", label="📝 Text Input", visible=True)
+    text_input = gr.Textbox(placeholder="Or type your question here...", label="📝 Text Input", visible=True)
     persona = gr.Radio(
         list(personalities.keys()),
         value="Friendly",
@@ -136,4 +146,4 @@ with gr.Blocks(css=css) as demo:
         inputs=[audio_input, text_input, persona],
         outputs=[output_text, output_audio]
     )
-demo.launch()
+demo.launch(share=True, debug=True)
