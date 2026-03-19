@@ -4,9 +4,7 @@ import speech_recognition as sr
 import pyttsx3
 import os
 
-MURF_API_KEY = os.getenv("MURF_API_KEY")
-if not MURF_API_KEY:
-    MURF_API_KEY = ""  # Set your Murf API key as an environment variable
+MURF_API_KEY = "ap2_c06b75d6-225e-4b5c-b599-1510cbf0b004"
 
 personalities = {
     "Friendly": "You are a friendly, enthusiastic, and highly encouraging Study Assistant. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always ask a follow-up question to check understanding",
